@@ -11,6 +11,9 @@
     "type-check": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "db:test": "node scripts/db-test.mjs",
+    "slides": "node scripts/build-slides.mjs",
+    "slides:pdf": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/slides-to-pdf.ps1",
+    "slides:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/slide-preview.ps1",
     "screenshot": "node scripts/screenshot.mjs",
     "verify": "npm run type-check && npm run lint && npm test && npm run build"
   },
@@ -34,11 +37,15 @@
     "eslint-config-next": "15.5.26",
     "playwright": "1.56.1",
     "postcss": "8.5.28",
+    "pptxgenjs": "4.0.1",
     "tailwindcss": "3.4.17",
     "tsx": "4.20.6",
     "typescript": "5.7.3"
   },
   "engines": {
     "node": ">=20.11.0"
+  },
+  "overrides": {
+    "image-size": "2.0.4"
   }
 }

@@ -15,3 +15,7 @@ yarn-error.log*
 next-env.d.ts
 coverage/
 .screenshots/
+
+# Intermediate 16:9 crops used to build the deck. Regenerate with
+# scripts/crop-for-slides.ps1 - the originals in docs/screenshots are kept.
+deliverables/Slides/assets/
