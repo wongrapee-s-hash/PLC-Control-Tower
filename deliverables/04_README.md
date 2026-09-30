@@ -7,6 +7,9 @@
 > ระบบนี้รันได้ทันทีโดยไม่ต้องตั้งค่าฐานข้อมูล — คัดลอก repo แล้ว `npm install && npm run dev`
 > แล้วเข้าสู่ระบบด้วยบัญชีสาธิตได้เลย เมื่อต้องการใช้งานจริงให้เชื่อม Supabase ตาม
 > [การเชื่อมต่อฐานข้อมูล](#การเชื่อมต่อฐานข้อมูล)
+>
+> **ก่อนนำไปใช้งานจริง อ่าน [`deliverables/08_ข้อจำกัดที่ทราบ.md`](deliverables/08_ข้อจำกัดที่ทราบ.md) ก่อน**
+> มีรายการที่ยังไม่ได้ตรวจสอบ — ที่สำคัญที่สุดคือ `supabase/schema.sql` ยังไม่เคยถูกรันกับฐานข้อมูลจริง
 
 ---
 
@@ -63,7 +66,7 @@ npm run dev
 | `npm start` | รัน build ที่ได้ |
 | `npm run type-check` | ตรวจ TypeScript (`tsc --noEmit`) |
 | `npm run lint` | ตรวจ ESLint |
-| `npm test` | unit tests 28 เคส |
+| `npm test` | unit tests 37 เคส |
 | `npm run verify` | รันทั้งสี่อย่างตามลำดับ (ใช้ก่อน push) |
 
 ---
@@ -174,7 +177,9 @@ src/
 │  └─ supabase/           ← client + การ diff snapshot ไปเขียน DB
 └─ types/domain.ts        ← union ทุกตัวที่ไปถึงฐานข้อมูล
 supabase/                  ← schema.sql, seed.sql, reset.sql
-tests/domain.test.ts      ← unit tests ของ domain layer
+tests/
+   ├─ domain.test.ts         ← unit tests ของ domain layer (28 เคส)
+   └─ sync.test.ts           ← unit tests ของการ diff snapshot ไปเขียน DB (9 เคส)
 ```
 
 **หลักการสำคัญ** — `plant-store.ts` เป็น pure function ทั้งหมด
@@ -227,9 +232,15 @@ OEE = ความพร้อมเครื่อง × ประสิทธ�
 npm test
 ```
 
-28 เคสครอบคลุมส่วนที่ถูกต้องที่สุดของระบบ: สูตร OEE (รวมกรณีหารด้วยศูนย์), กติกา workflow,
-การจองและเบิกอะไหล่ (ต้องไม่เกิดหุ้นหรือขาดหาย), การกันสต็อกติดลบ, การกันย้อนสถานะ
-และความสอดคล้องของ selector กับข้อมูลจริง
+37 เคสแบ่งเป็นสองกลุ่ม
+
+**`tests/domain.test.ts` (28 เคส)** ครอบคลุมส่วนที่ถูกต้องที่สุดของระบบ: สูตร OEE
+(รวมกรณีหารด้วยศูนย์), กติกา workflow, การจองและเบิกอะไหล่ (ต้องไม่เกิดหุ้นหรือขาดหาย),
+การกันสต็อกติดลบ, การกันย้อนสถานะ และความสอดคล้องของ selector กับข้อมูลจริง
+
+**`tests/sync.test.ts` (9 เคส)** ตรวจสัญญาการเขียนลง Supabase ซึ่งเป็นจุดที่เคยพลาด:
+primary key ที่เบราว์เซอร์สร้างต้องไม่ถูกตัดทิ้ง, การลบต้องเรียงลูกก่อนแม่, การ insert
+ต้องเรียงแม่ก่อนลูก, และต้องหยุดทันทีถ้า UUID ชนกับข้อมูลเดิม
 
 CI (`.github/workflows/ci.yml`) รัน type-check, lint, test และ build ทุกครั้งที่ push
 
