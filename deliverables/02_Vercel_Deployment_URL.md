@@ -1,16 +1,42 @@
 # 2. ลิงก์ Vercel Deployment
 
-* **Live Deployment URL:** _(ยังไม่ได้ deploy — ต้องเชื่อม repo กับบัญชี Vercel)_
+* **Vercel Project:** https://vercel.com/wongrapee034/plccontroltower
+* **Live Deployment URL:** _(ยังไม่มี — โปรเจกต์บน Vercel ถูกสร้างแล้ว แต่ยังไม่เคย deploy สำเร็จ)_
 * **Framework:** Next.js 15.5.26 (App Router)
-* **สถานะ:** ผ่าน `npm run build` แล้ว แต่ยังไม่ได้ deploy จริง
+* **สถานะ:** ผ่าน `npm run build` ในเครื่อง และผ่านบน GitHub Actions แต่ยังไม่ได้ deploy จริง
+
+## ตรวจแล้วว่าเป็นอะไร
+
+เช็กโดเมนที่เป็นไปได้ทั้งหมด ตอบกลับมาเป็น 404 ทั้งสิ้น แปลว่า **ยังไม่เคยมี deployment ที่สำเร็จ**
+
+| โดเมน | ผลลัพธ์ |
+| --- | --- |
+| `plccontroltower.vercel.app` | 404 |
+| `plccontroltower-wongrapee034.vercel.app` | 404 |
+| `plc-control-tower-wongrapee034.vercel.app` | 404 |
+
+ตัวโปรเจกต์เองไม่ได้มีปัญหา — `next.config.ts` ไม่มี setting แปลก, ไม่มี `postinstall`/`prepare` script,
+`engines` กำหนด `node >=20.11.0` และ `npm run build` ผ่านทั้งในเครื่องและบน CI
+ดังนั้นสาเหตุที่เป็นไปได้มากที่สุดคือ **ยังไม่ได้เชื่อม GitHub repo เข้ากับโปรเจกต์ Vercel**
 
 ## วิธี Deploy
 
-1. นำเข้า repository จาก GitHub ที่ <https://vercel.com/new>
-2. Framework Preset: **Next.js** (ตรวจพบอัตโนมัติ)
-3. **ไม่ต้องตั้งค่า Environment Variables** เพื่อให้ระบบทำงานได้ทันที
-   ถ้าไม่ตั้งค่า ระบบจะรันในโหมดออฟไลน์ด้วยชุดข้อมูลตัวอย่างที่ตรึงวันที่ `2026-09-30`
-4. กด Deploy และรอ build ผ่าน
+1. เข้า https://vercel.com/wongrapee034/plccontroltower แล้วไปที่แท็บ **Settings → Git**
+2. เชื่อม repository `wongrapee-s-hash/PLC-Control-Tower`
+   (ถ้ามีปุ่ม *Connect Git Repository* แปลว่ายังไม่ได้เชื่อม)
+3. กลับไปแท็บ **Deployments** แล้วกด **Redeploy** หรือ push commit ใหม่เพื่อให้ Vercel เริ่ม build
+4. รอ build ผ่าน โดเมนที่ได้จะเป็น `plccontroltower.vercel.app`
+
+Framework Preset ต้องเป็น **Next.js** (ตรวจพบอัตโนมัติ) และ Build Command เป็น `next build` (ค่าเริ่มต้น)
+
+**ไม่ต้องตั้ง Environment Variables** เพื่อให้ระบบทำงานได้ทันที
+ถ้าไม่ตั้งค่า ระบบจะรันในโหมดออฟไลน์ด้วยชุดข้อมูลตัวอย่างที่ตรึงวันที่ `2026-09-30`
+
+### ถ้า build ล้มเหลว
+
+เปิด **Deployments** → คลิกที่ build ที่ล้ม → ดูแท็บ **Logs**
+สาเหตุที่พบบ่อยที่สุดคือ GitHub App ของ Vercel ยังไม่ได้รับสิทธิ์เข้าถึง repo
+แก้ที่ https://vercel.com/account/integrations โดยติ๊กชื่อ repo ให้เป็น *All repositories*
 
 ### ถ้าต้องการเชื่อม Supabase จริง
 
