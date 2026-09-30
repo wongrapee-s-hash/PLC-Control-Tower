@@ -99,6 +99,33 @@ begin
 end;
 $$;
 
+-- The `authz.*` role helpers live at the end of section 3, immediately after
+-- `app_users`. PostgreSQL validates a SQL function body when it is created, so
+-- they cannot be defined before the table they select from exists.
+
+-- =============================================================================
+-- 3.  IDENTITY & ACCESS
+-- =============================================================================
+
+create table if not exists public.app_users (
+  user_id       uuid primary key references auth.users (id) on delete cascade,
+  email         text        not null unique,
+  display_name  text        not null,
+  role          public.app_role not null default 'planner',
+  site_code     text,
+  is_active     boolean     not null default true,
+  last_seen_at  timestamptz,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+comment on table public.app_users is
+  'Application profile linked 1:1 to an auth.users identity. Role is authoritative here, not in JWT claims.';
+
+drop trigger if exists trg_app_users_touch on public.app_users;
+create trigger trg_app_users_touch before update on public.app_users
+  for each row execute function public.touch_updated_at();
+
 -- Reads the caller's app_role once. Falls back to 'planner' (read-mostly) for
 -- anonymous traffic so that a misconfigured client fails *closed*, not open.
 create or replace function authz.current_role()
@@ -151,29 +178,6 @@ $$;
 
 revoke all on function authz.owns_role(public.app_role) from public, anon;
 grant execute on function authz.owns_role(public.app_role) to authenticated;
-
--- =============================================================================
--- 3.  IDENTITY & ACCESS
--- =============================================================================
-
-create table if not exists public.app_users (
-  user_id       uuid primary key references auth.users (id) on delete cascade,
-  email         text        not null unique,
-  display_name  text        not null,
-  role          public.app_role not null default 'planner',
-  site_code     text,
-  is_active     boolean     not null default true,
-  last_seen_at  timestamptz,
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
-);
-
-comment on table public.app_users is
-  'Application profile linked 1:1 to an auth.users identity. Role is authoritative here, not in JWT claims.';
-
-drop trigger if exists trg_app_users_touch on public.app_users;
-create trigger trg_app_users_touch before update on public.app_users
-  for each row execute function public.touch_updated_at();
 
 -- Seeded personas. In a real deployment the password lives in auth.users; this
 -- project authenticates through a credential gate that maps to these rows.
@@ -367,7 +371,10 @@ create table if not exists public.downtime_events (
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
   constraint downtime_ended_after_start check (ended_at is null or ended_at >= started_at),
-  constraint downtime_closed_has_end  check (reaction = 'open' or ended_at is not null)
+  -- 'acknowledged' means the crew has seen the stoppage but the machine has not
+  -- restarted yet, so it is still running and legitimately has no end time. Only
+  -- the states that assert the machine is running again require one.
+  constraint downtime_resolved_has_end check (reaction not in ('mitigated', 'expired') or ended_at is not null)
 );
 
 create index if not exists downtime_asset_idx  on public.downtime_events (asset_id, started_at desc);
@@ -472,7 +479,9 @@ begin
   values (
     v_actor,
     v_mail,
-    (tg_op::public.trail_action),
+    -- tg_op yields 'INSERT' / 'UPDATE' / 'DELETE' in upper case, while the
+    -- trail_action enum is lower case, so the cast needs the normalisation.
+    (lower(tg_op)::public.trail_action),
     v_table,
     v_key,
     v_table || ' / ' || v_key || coalesce(' - ' || v_label, ''),

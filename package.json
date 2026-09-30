@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
+    "db:test": "node scripts/db-test.mjs",
     "screenshot": "node scripts/screenshot.mjs",
     "verify": "npm run type-check && npm run lint && npm test && npm run build"
   },

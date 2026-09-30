@@ -67,6 +67,7 @@ npm run dev
 | `npm run type-check` | ตรวจ TypeScript (`tsc --noEmit`) |
 | `npm run lint` | ตรวจ ESLint |
 | `npm test` | unit tests 37 เคส |
+| `npm run db:test` | ยกคอนเทนเนอร์ PostgreSQL ขึ้นมารัน schema, seed และทดสอบ RLS 13 ข้อ (ต้องเปิด Docker) |
 | `npm run verify` | รันทั้งสี่อย่างตามลำดับ (ใช้ก่อน push) |
 
 ---
@@ -177,9 +178,13 @@ src/
 │  └─ supabase/           ← client + การ diff snapshot ไปเขียน DB
 └─ types/domain.ts        ← union ทุกตัวที่ไปถึงฐานข้อมูล
 supabase/                  ← schema.sql, seed.sql, reset.sql
+   └─ tests/
+      ├─ shim.sql            ← จำลอง auth schema ของ Supabase บน Postgres เปล่า
+      └─ rls.sql             ← 13 ข้อทดสอบว่า RLS ทำงานตามที่ตั้งใจ
 tests/
    ├─ domain.test.ts         ← unit tests ของ domain layer (28 เคส)
    └─ sync.test.ts           ← unit tests ของการ diff snapshot ไปเขียน DB (9 เคส)
+scripts/                    ← db-test.mjs, screenshot.mjs
 ```
 
 **หลักการสำคัญ** — `plant-store.ts` เป็น pure function ทั้งหมด
@@ -243,6 +248,29 @@ primary key ที่เบราว์เซอร์สร้างต้อ�
 ต้องเรียงแม่ก่อนลูก, และต้องหยุดทันทีถ้า UUID ชนกับข้อมูลเดิม
 
 CI (`.github/workflows/ci.yml`) รัน type-check, lint, test และ build ทุกครั้งที่ push
+
+### ทดสอบฐานข้อมูล
+
+`npm test` ครอบคลุมแค่โค้ดฝั่งแอป เพราะโค้ด SQL กับ RLS ต้องทดสอบกับ PostgreSQL จริง
+
+```bash
+npm run db:test
+```
+
+สคริปต์นี้จะยกคอนเทนเนอร์ `postgres:16-alpine` ขึ้นมา ติดตั้ง shim ที่จำลอง `auth.users`
+กับ `auth.uid()` ของ Supabase แล้วรัน `schema.sql` → `seed.sql` → `supabase/tests/rls.sql`
+และลบคอนเทนเนอร์ทิ้งเมื่อเสร็จ (ไม่มีข้อมูลค้างในเครื่อง)
+
+13 ข้อที่ตรวจ ได้แก่
+
+- ผู้ใช้ที่ไม่ล็อกอินได้สิทธิ์เท่ากับ `planner` — ตั้งค่าผิดแล้วจะ fail closed
+- admin อ่าน audit trail ได้ แต่แก้หรือลบไม่ได้แม้เป็น admin
+- engineer เขียนเครื่องจักรได้ แต่เขียนข้อมูลอ้างอิงไม่ได้
+- planner แก้เครื่องจักรไม่ได้ และเปิดใบงานได้เฉพาะ PM ที่ยังอยู่ในสถานะวางแผน
+- ผู้ใช้เลื่อนบทบาทตัวเองเป็น admin ไม่ได้ แต่แก้ชื่อของตัวเองได้
+
+ชุดนี้เจอบั๊กจริง 3 จุดที่การอ่านโค้ดอย่างเดียวไม่พบ
+รายละเอียดอยู่ใน [`deliverables/08_ข้อจำกัดที่ทราบ.md`](deliverables/08_ข้อจำกัดที่ทราบ.md)
 
 ---
 
