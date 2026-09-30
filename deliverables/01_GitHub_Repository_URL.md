@@ -4,7 +4,8 @@
 * **Clone:** `git clone https://github.com/wongrapee-s-hash/PLC-Control-Tower.git`
 * **Default Branch:** `main`
 * **Visibility:** Public
-* **CI/CD Status:** มี GitHub Actions (`.github/workflows/ci.yml`) — รัน type-check, lint, unit test 37 เคส และ production build ทุกครั้งที่ push เข้า `main` หรือเปิด Pull Request
+* **CI/CD Status:** **ผ่าน** — https://github.com/wongrapee-s-hash/PLC-Control-Tower/actions/runs/36680273972
+  มี GitHub Actions (`.github/workflows/ci.yml`) รัน type-check, lint, unit test 37 เคส และ production build ทุกครั้งที่ push เข้า `main` หรือเปิด Pull Request
 
 ## การตั้งค่าในเครื่อง
 

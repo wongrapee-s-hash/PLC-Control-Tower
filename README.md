@@ -1,5 +1,8 @@
 # Production Control Tower
 
+[![CI](https://github.com/wongrapee-s-hash/PLC-Control-Tower/actions/workflows/ci.yml/badge.svg)](https://github.com/wongrapee-s-hash/PLC-Control-Tower/actions/workflows/ci.yml)
+[![Repo](https://img.shields.io/badge/github-wongrapee--s--hash%2FPLC--Control--Tower-0F172A)](https://github.com/wongrapee-s-hash/PLC-Control-Tower)
+
 ระบบศูนย์ควบคุมการผลิตสำหรับโรงงานอิเล็กทรอนิกส์แบบสายการผลิต (discrete manufacturing)
 ครอบคลุมตั้งแต่ทะเบียนเครื่องจักร ใบงานซ่อมบำรุง เวลาหยุดเครื่อง คลังอะไหล่ และรายงาน OEE
 ในหน้าจอเดียว
