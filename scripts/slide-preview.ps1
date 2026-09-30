@@ -18,6 +18,15 @@ try {
     $pres = $ppt.Presentations.Open($Pptx, $true, $false, $false)
     $pres.Export($OutDir, "PNG", 1600, 900)
 
+    # PowerPoint names the files after the slide, which follows the UI language.
+    # Rename to a zero-padded English sequence so the folder sorts correctly.
+    $i = 0
+    foreach ($f in Get-ChildItem $OutDir | Sort-Object { [int]($_.BaseName -replace '\D', '') }) {
+        $i++
+        $new = Join-Path $OutDir ("Slide{0:d2}.png" -f $i)
+        if ($f.FullName -ne $new) { Rename-Item $f.FullName $new -Force }
+    }
+
     $slideW = $pres.PageSetup.SlideWidth
     $slideH = $pres.PageSetup.SlideHeight
 
@@ -58,7 +67,7 @@ finally {
 }
 
 "===== เนื้อหาต่อหน้า ====="
-foreach ($f in Get-ChildItem $OutDir | Sort-Object { [int]($_.BaseName -replace '\D', '') }) {
+foreach ($f in Get-ChildItem $OutDir -Filter *.png | Sort-Object Name) {
     $bmp = [System.Drawing.Bitmap]::FromFile($f.FullName)
     $ink = 0; $total = 0
     for ($y = 0; $y -lt $bmp.Height; $y += 4) {
@@ -68,7 +77,7 @@ foreach ($f in Get-ChildItem $OutDir | Sort-Object { [int]($_.BaseName -replace 
             if (($c.R + $c.G + $c.B) -lt 700) { $ink++ }
         }
     }
-    "  หน้า {0,2}  เนื้อหา {1,5:N1}%" -f ($f.BaseName -replace '\D', ''), (100 * $ink / $total)
+    "  {0,-12} เนื้อหา {1,5:N1}%" -f $f.BaseName, (100 * $ink / $total)
     $bmp.Dispose()
 }
 
