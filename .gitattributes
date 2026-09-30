@@ -1,0 +1,12 @@
+# Normalise line endings so the repository does not churn between
+# Windows (CRLF) and Linux (LF) checkouts. Vercel and GitHub Actions both
+# build on Linux, so the working copy is forced to LF as well.
+* text=auto eol=lf
+
+# Keep generated or binary files out of the text rules above.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.ico binary
+package-lock.json -diff
